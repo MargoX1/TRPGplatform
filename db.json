@@ -1,0 +1,8 @@
+{
+  "games": [
+    { "id": 1, "title": "Подземелье дракона", "gmId": 1 }
+  ],
+  "users": [
+    { "id": 1, "login": "test", "password": "123" }
+  ]
+}
