@@ -1,7 +1,9 @@
 // src/types/User.ts
+
 export interface User {
   id: number;
-  name: string;
-  role: 'GM' | 'Player';
+  username: string;
+  email: string;
+  password: string;
   createdAt: string;
 }

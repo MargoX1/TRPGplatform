@@ -8,17 +8,31 @@ const DashboardPage = () => {
   const { user, logout } = useAuth();
   const [isCreating, setIsCreating] = useState(false);
 
-  const createGame = () => {
+  const createGame = async () => {
+    if (!user) return;
+
     setIsCreating(true);
-    
-    // Имитация задержки создания игры (в реальном приложении здесь будет API-запрос)
-    setTimeout(() => {
-      // Генерируем случайный ID для новой игры
-      const newGameId = Math.floor(Math.random() * 1000);
-      // Переходим на страницу новой игры
-      navigate(`/game/${newGameId}`);
-      setIsCreating(false);
-    }, 1000);
+    //в реальном приложении здесь будет API-запрос
+       try {
+        const newGame = await createNewGame("Новая игра", user.id);
+        navigate(`/game/${newGame.id}`);
+      } finally {
+        setIsCreating(false);
+      }
+  };
+
+  // Временная реализация
+  const createNewGame = async (title: string, creatorId: number) => {
+    return {
+      id: Math.floor(Math.random() * 1000),
+      title,
+      creatorId,
+      players: [{
+        userId: creatorId,
+        role: 'GM',
+        character: null
+      }]
+    };
   };
 
    // Функция для выхода из системы
@@ -39,7 +53,7 @@ const DashboardPage = () => {
     <div className="min-h-screen bg-gray-900 p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-white">
-          Привет, {user.name}!
+          Привет, {user.username}!
         </h1>
         <button 
           onClick={handleLogout} // Используем новую функцию выхода
