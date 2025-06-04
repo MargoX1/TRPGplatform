@@ -1,6 +1,5 @@
 // src/components/AuthForm.tsx
 import React, { useState } from "react";
-import { useAuth } from "../context/AuthContext";
 
 interface AuthFormProps {
   isLoginMode: boolean;
