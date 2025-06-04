@@ -1,306 +1,184 @@
 // src/pages/GameRoomPage.tsx
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useGames } from "../context/GameContext";
-import { Game } from "../types/Game";
+import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
-const GameRoomPage: React.FC = () => {
-  // Получаем ID игры из URL
-  const { id: gameIdParam } = useParams<{ id: string }>();
-
-  // Получаем данные пользователя
-  const { user } = useAuth();
-
+const GameRoomPage = () => {
   const navigate = useNavigate();
-  const { getGameById, updateGame, /* promotePlayer,*/ refreshGames } =
-    useGames();
-  const [game, setGame] = useState<Game | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [newLocationName, setNewLocationName] = useState("");
-
-  // Загрузка игры при монтировании или изменении ID
-  useEffect(() => {
-    const loadGame = async () => {
-      console.log("Начало загрузки игры, gameIdParam:", gameIdParam);
-
-      if (!gameIdParam) {
-        setError("ID игры не указан");
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const gameId = parseInt(gameIdParam);
-        const gameData = getGameById(gameId);
-
-        if (!gameData) {
-          setError("Игра не найдена");
-          setIsLoading(false);
-          return;
-        }
-
-        setGame(gameData);
-        setError("");
-      } catch (err) {
-        setError("Ошибка загрузки игры");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadGame();
-  }, [gameIdParam, getGameById]);
-
-  // Проверка роли текущего пользователя
-  const isCurrentUserGM = () => {
-    if (!game || !user) return false;
-    return game.players.some((p) => p.userId === user.id && p.role === "GM");
-  };
-
-  // // Создание новой локации (только для GM)
-  // const handleCreateLocation = async () => {
-  //   if (!game || !newLocationName.trim()) return;
-
-  //   try {
-  //     const updatedGame = {
-  //       ...game,
-  //       locations: [
-  //         ...(game.locations || []),
-  //         {
-  //           id: Math.max(0, ...(game.locations?.map((l) => l.id) || [0])) + 1,
-  //           name: newLocationName,
-  //           description: "",
-  //           createdAt: new Date().toISOString(),
-  //         },
-  //       ],
-  //     };
-
-  //     await updateGame(updatedGame);
-  //     setGame(updatedGame);
-  //     setNewLocationName("");
-  //   } catch (err) {
-  //     setError("Не удалось создать локацию");
-  //   }
-  // };
-
-  //   // Назначение игрока GM
-  // const handlePromotePlayer = async (playerId: number) => {
-  //   if (!game || !gameIdParam) return;
-
-  //   try {
-  //     const updatedGame = await promotePlayer(parseInt(gameIdParam), playerId);
-  //     setGame(updatedGame);
-  //   } catch (err) {
-  //     setError('Не удалось изменить роль игрока');
-  //   }
-  // };
-
-  // // Временные данные для примера
-  // const gameData = {
-  //   title: "Подземелье Дракона",
-  //   description: "Старинный замок, скрывающий древние сокровища",
-  //   createdAt: "2025-05-29",
-  // };
-
-  // Обновление состояния игры
-  const refreshGame = async () => {
-    if (!gameIdParam) return;
-
-    try {
-      await refreshGames();
-      const gameId = parseInt(gameIdParam);
-      const updatedGame = getGameById(gameId);
-      if (updatedGame) setGame(updatedGame);
-    } catch (err) {
-      setError("Ошибка обновления данных");
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-2xl">Загрузка игры...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
-        <div className="text-red-500 text-xl mb-4">{error}</div>
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="bg-purple-600 text-white px-4 py-2 rounded"
-        >
-          Вернуться на главную
-        </button>
-      </div>
-    );
-  }
-
-  if (!game) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-2xl">Игра не найдена</div>
-      </div>
-    );
-  }
-
-  // Получение текущего игрока
-  const currentPlayer = game.players.find((p) => p.userId === user?.id);
+  const isGM = true; // Заглушка: считаем пользователя ГМом
+  const { gameId } = useParams();
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 md:p-8">
-      {/* Шапка с информацией об игре */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold">{game.title}</h1>
-          <p className="text-gray-400 text-sm">
-            Игроков: {game.players.length} | Создана:{" "}
-            {new Date(game.createdAt).toLocaleDateString()}
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-900 flex flex-col">
+      {/* Закрепленная шапка */}
+      <div className="sticky top-0 z-10 bg-gray-800 p-4 shadow-lg">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Тёмные земли</h1>
+            <p className="text-gray-400">
+              Фэнтезийный мир с драконами и магией
+            </p>
+          </div>
 
-        <div className="flex gap-3">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition"
-          >
-            Назад
-          </button>
+          <div className="flex items-center space-x-4">
+            {/* Статус пользователя с иконкой */}
+            <div className="flex items-center">
+              <div
+                className={`w-3 h-3 rounded-full mr-2 ${
+                  isGM ? "bg-purple-500" : "bg-green-500"
+                }`}
+              ></div>
+              <span
+                className={`${
+                  isGM ? "text-purple-300" : "text-green-300"
+                } font-medium`}
+              >
+                {isGM ? "ГМ" : "Игрок"}
+              </span>
+            </div>
 
-          <button
-            onClick={refreshGame}
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition"
-          >
-            Обновить
-          </button>
+            {/* Разделитель */}
+            <div className="h-6 w-px bg-gray-600"></div>
+
+            {/* Кнопка выхода */}
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center text-gray-300 hover:text-white transition"
+            >
+              На главную
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-1 rotate-180"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Панель игроков */}
-        <div className="lg:col-span-1 bg-gray-800 rounded-xl p-6">
-          <h2 className="text-xl font-semibold mb-4">Участники</h2>
+      {/* Основной контент */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 flex-grow">
+        {/* Левый блок: Персонажи и игроки */}
+        <div className="lg:col-span-1 bg-gray-800 rounded-xl p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-white">Участники</h2>
+            <span className="bg-gray-700 text-gray-300 px-2 py-1 rounded text-sm">
+              3/5
+            </span>
+          </div>
 
+          {/* Список игроков */}
           <div className="space-y-3">
-            {game.players.map((player) => (
-              <div
-                key={player.userId}
-                className={`p-3 rounded-lg ${
-                  player.role === "GM"
-                    ? "bg-purple-900/50 border border-purple-500"
-                    : "bg-gray-700"
-                }`}
+            {/* Игрок 1 */}
+            <div className="bg-gray-700 p-3 rounded-lg">
+              <div className="flex justify-between">
+                <h3 className="font-bold text-white">Margo </h3>
+                <span className="text-purple-400">ГМ</span>
+              </div>
+              <p className="text-gray-400 text-sm mt-1">Мастер игры</p>
+            </div>
+
+            {/* Игрок 2 */}
+            <div className="bg-gray-700 p-3 rounded-lg">
+              <div className="flex justify-between">
+                <h3 className="font-bold text-white">Anna</h3>
+                <span className="text-green-400">Игрок</span>
+              </div>
+              <p className="text-gray-400 text-sm mt-1">Лиана, эльфийка-маг</p>
+            </div>
+
+            {/* Игрок 3 */}
+            <div className="bg-gray-700 p-3 rounded-lg">
+              <div className="flex justify-between">
+                <h3 className="font-bold text-white">Max</h3>
+                <span className="text-green-400">Игрок</span>
+              </div>
+              <p className="text-gray-400 text-sm mt-1">Торг, дворф-воин</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Центральный блок: Чат и игровой процесс */}
+        <div className="lg:col-span-2 bg-gray-800 rounded-xl p-4 flex flex-col">
+          {/* Заголовок локации */}
+          <div className="flex items-center mb-4">
+            <h2 className="text-xl font-bold text-white">
+              Таверна "Последний привал"
+            </h2>
+            <span className="ml-3 bg-yellow-500/20 text-yellow-300 text-sm px-2 py-1 rounded">
+              3 игрока
+            </span>
+          </div>
+
+          {/* История и чат */}
+          <div className="flex-1 overflow-y-auto mb-4 space-y-3">
+            {/* Сообщение ГМа */}
+            <div className="bg-purple-900/30 p-3 rounded-lg">
+              <div className="flex items-center">
+                <span className="font-bold text-purple-400">[ГМ]</span>
+                <span className="text-gray-500 text-sm ml-2">10:42</span>
+              </div>
+              <p className="text-white mt-1">
+                Вы слышите шум драки из дальнего угла таверны. Два гоблина
+                спорят из-за куска мяса.
+              </p>
+            </div>
+
+            {/* Сообщение игрока */}
+            <div className="bg-gray-700 p-3 rounded-lg">
+              <div className="flex items-center">
+                <span className="font-bold text-green-400">Лиана:</span>
+                <span className="text-gray-500 text-sm ml-2">10:43</span>
+              </div>
+              <p className="text-white mt-1">
+                Осматриваю гоблинов на предмет магических аур. Кастую Detect
+                Magic.
+              </p>
+            </div>
+          </div>
+
+          {/* Поле ввода */}
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              placeholder="Введите ваше действие или реплику..."
+              className="flex-1 bg-gray-700 text-white rounded-lg p-3"
+            />
+            <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">
+              Отправить
+            </button>
+          </div>
+        </div>
+
+        {/* Правый блок: Инструменты ГМа */}
+        {isGM && (
+          <div className="lg:col-span-1 bg-gray-800 rounded-xl p-4">
+            <h2 className="text-xl font-bold text-white mb-4">
+              Инструменты ГМа
+            </h2>
+
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <button
+                onClick={() => navigate(`/game/${gameId}/agame-access-panel`)}
+                className="bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg"
               >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-medium">
-                      {/*player.character?.name ||*/ `Игрок #${player.userId}`}
-                      {player.userId === user?.id && " (Вы)"}
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      {player.role === "GM" ? "Гейм-мастер" : "Игрок"}
-                    </div>
-                  </div>
-
-                  {/* {isCurrentUserGM() && player.role !== 'GM' && (
-                    <button
-                      onClick={() => handlePromotePlayer(player.userId)}
-                      className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Сделать GM
-                    </button>
-                  )} */}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Форма создания локации (только для GM) */}
-          {/* {isCurrentUserGM() && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold mb-3">Управление игрой</h3>
-
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newLocationName}
-                  onChange={(e) => setNewLocationName(e.target.value)}
-                  placeholder="Название новой локации"
-                  className="flex-1 p-2 bg-gray-700 text-white rounded"
-                />
-                <button
-                  onClick={handleCreateLocation}
-                  disabled={!newLocationName.trim()}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50"
-                >
-                  Создать
-                </button>
-              </div>
-            </div>
-          )} */}
-        </div>
-
-        {/* Основная игровая зона */}
-        <div className="lg:col-span-2 bg-gray-800 rounded-xl p-6">
-          <h2 className="text-xl font-semibold mb-4">Игровое пространство</h2>
-
-          {/* Список локаций */}
-          {/* <div className="mb-6">
-            <h3 className="text-lg font-medium mb-3">Локации</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {(game.locations || []).map((location) => (
-                <div
-                  key={location.id}
-                  className="bg-gray-700 p-4 rounded-lg hover:bg-gray-600 transition cursor-pointer"
-                >
-                  <div className="font-medium">{location.name}</div>
-                  <div className="text-gray-400 text-sm mt-1">
-                    {location.description || "Описание отсутствует"}
-                  </div>
-                </div>
-              ))}
-
-              {/* {(!game.locations || game.locations.length === 0) && (
-                <div className="text-gray-400 col-span-full">
-                  Локации не созданы.{" "}
-                  {isCurrentUserGM() &&
-                    "Используйте форму выше, чтобы создать новую локацию."}
-                </div>
-              )} */}
-          {/* </div>
-          </div> */}
-
-          {/* Чат игры */}
-          <div>
-            <h3 className="text-lg font-medium mb-3">Чат</h3>
-            <div className="bg-gray-700 rounded-lg p-4 min-h-[300px]">
-              <div className="mb-4">
-                <div className="text-purple-400">
-                  [Система]: Добро пожаловать в игру!
-                </div>
-                <div className="text-blue-400 mt-2">
-                  [ГМ]: Начните исследовать локации
-                </div>
-              </div>
-
-              <div className="flex gap-2 mt-4">
-                <input
-                  type="text"
-                  placeholder="Напишите сообщение..."
-                  className="flex-1 p-2 bg-gray-600 text-white rounded"
-                />
-                <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
-                  Отправить
-                </button>
-              </div>
+                Панель доступа
+              </button>
+              <button
+                onClick={() => navigate(`/game/${gameId}/gm-console`)}
+                className="bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg"
+              >
+                Панель ГМа
+              </button>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

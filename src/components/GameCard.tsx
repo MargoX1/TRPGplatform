@@ -1,88 +1,51 @@
 // src/components/GameCard.tsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Game } from "../types/Game";
-import { useAuth } from "../context/AuthContext";
-import { useGames } from "../context/GameContext";
+import React from "react";
 
 interface GameCardProps {
-  game: Game;
-  showJoinButton?: boolean;
+  title: string;
+  description: string;
+  status: "active" | "inactive";
+  onManage: () => void;
+  onPlay: () => void;
 }
 
 const GameCard: React.FC<GameCardProps> = ({
-  game,
-  showJoinButton = false,
+  title,
+  description,
+  status,
+  onManage,
+  onPlay,
 }) => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { joinGame } = useGames();
-  const [isJoining, setIsJoining] = useState(false);
-  const [characterName, setCharacterName] = useState("");
-
-  const isParticipant = game.players.some((p) => p.userId === user?.id);
-  const isCreator = game.creatorId === user?.id;
-
-  const handleJoinGame = async () => {
-    if (!characterName.trim() || !user) return;
-
-    setIsJoining(true);
-    try {
-      await joinGame(game.id /*, characterName*/);
-      navigate(`/game/${game.id}`);
-    } finally {
-      setIsJoining(false);
-    }
-  };
-
   return (
-    <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
-      <h3 className="text-lg font-medium text-white mb-2">{game.title}</h3>
-
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-gray-400 text-sm">
-          Игроков: {game.players.length}
-        </span>
-        <span className="text-gray-400 text-sm">
-          {isCreator ? "Создатель" : isParticipant ? "Участник" : "Доступно"}
+    <div className="bg-gray-800 rounded-xl p-6">
+      <div className="flex justify-between items-start">
+        <h2 className="text-xl font-bold text-white">{title}</h2>
+        <span
+          className={`${
+            status === "active"
+              ? "bg-green-500/20 text-green-300"
+              : "bg-yellow-500/20 text-yellow-300"
+          } text-sm px-2 py-1 rounded`}
+        >
+          {status === "active" ? "Активна" : "Неактивна"}
         </span>
       </div>
+      <p className="text-gray-400 mt-2">{description}</p>
 
-      {showJoinButton && !isParticipant && (
-        <div className="mt-3">
-          <input
-            type="text"
-            value={characterName}
-            onChange={(e) => setCharacterName(e.target.value)}
-            placeholder="Имя персонажа"
-            className="w-full p-2 mb-2 bg-gray-600 text-white rounded"
-          />
-          <button
-            onClick={handleJoinGame}
-            disabled={isJoining || !characterName.trim()}
-            className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 rounded disabled:opacity-50"
-          >
-            {isJoining ? "Присоединение..." : "Присоединиться"}
-          </button>
-        </div>
-      )}
-
-      {(isParticipant || isCreator) && (
+      <div className="mt-4 flex space-x-3">
         <button
-          onClick={() => navigate(`/game/${game.id}`)}
-          className="w-full mt-3 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded"
+          onClick={onManage}
+          className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-lg text-sm"
         >
-          Перейти к игре
+          Управление
         </button>
-      )}
-
-      {isCreator && (
-        <div className="mt-3 text-center">
-          <span className="text-gray-400 text-sm">
-            Ссылка для приглашения: {window.location.origin}/join/{game.id}
-          </span>
-        </div>
-      )}
+        <button
+          onClick={onPlay}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-lg text-sm"
+        >
+          Войти в игру
+        </button>
+      </div>
     </div>
   );
 };
